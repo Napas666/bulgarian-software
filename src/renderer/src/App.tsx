@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from './store/useStore'
 import { setToken, setRepo } from './api/github'
+import { themes, applyTheme } from './themes'
 import TitleBar from './components/layout/TitleBar'
 import Setup from './pages/Setup'
 import Issues from './pages/Issues'
@@ -26,16 +27,30 @@ export default function App() {
   const token = useStore(s => s.token)
   const repoUrl = useStore(s => s.repoUrl)
   const currentView = useStore(s => s.currentView)
+  const themeId = useStore(s => s.themeId)
   const setView = useStore(s => s.setView)
+  const setTheme = useStore(s => s.setTheme)
+  const [showThemes, setShowThemes] = useState(false)
 
-  // Restore API state from persisted store on mount
+  // Restore API state + apply saved theme on mount
   useEffect(() => {
     if (token) setToken(token)
     if (repoUrl) {
       const path = repoUrl.replace('https://github.com/', '').replace(/\/$/, '')
       setRepo(path)
     }
+    const saved = themes.find(t => t.id === themeId) ?? themes[0]
+    applyTheme(saved)
   }, [])
+
+  const currentTheme = themes.find(t => t.id === themeId) ?? themes[0]
+
+  const handleTheme = (id: string) => {
+    const t = themes.find(x => x.id === id)!
+    applyTheme(t)
+    setTheme(id)
+    setShowThemes(false)
+  }
 
   const isSetup = !token || !repoUrl
 
@@ -52,16 +67,19 @@ export default function App() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <TitleBar />
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+
         {/* Sidebar */}
         <div style={{
           width: 200,
           flexShrink: 0,
-          background: 'rgba(8,8,15,0.8)',
+          background: 'rgba(0,0,0,0.5)',
           borderRight: '1px solid var(--border)',
           display: 'flex',
           flexDirection: 'column',
           padding: '16px 8px'
         }}>
+
+          {/* Nav */}
           {navItems.map(item => {
             const active = activeParent === item.id
             return (
@@ -69,8 +87,8 @@ export default function App() {
                 key={item.id}
                 onClick={() => setView(item.id)}
                 style={{
-                  background: active ? 'rgba(255,0,48,0.1)' : 'transparent',
-                  border: `1px solid ${active ? 'rgba(255,0,48,0.3)' : 'transparent'}`,
+                  background: active ? `${currentTheme.accent}18` : 'transparent',
+                  border: `1px solid ${active ? `${currentTheme.accent}44` : 'transparent'}`,
                   borderRadius: 7,
                   padding: '9px 12px',
                   cursor: 'pointer',
@@ -81,23 +99,106 @@ export default function App() {
                   transition: 'all 0.15s'
                 }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
-                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.background = active ? `${currentTheme.accent}18` : 'transparent' }}
               >
                 <span style={{ fontSize: 14, color: active ? 'var(--red)' : 'var(--text-3)' }}>{item.icon}</span>
-                <span style={{
-                  fontFamily: 'var(--font-head)',
-                  fontSize: 11,
-                  letterSpacing: '0.08em',
-                  color: active ? 'var(--red)' : 'var(--text-2)'
-                }}>
+                <span style={{ fontFamily: 'var(--font-head)', fontSize: 11, letterSpacing: '0.08em', color: active ? 'var(--red)' : 'var(--text-2)' }}>
                   {item.label.toUpperCase()}
                 </span>
               </button>
             )
           })}
 
-          {/* Spacer */}
           <div style={{ flex: 1 }} />
+
+          {/* Theme picker */}
+          <div style={{ marginBottom: 6, position: 'relative' }}>
+            <button
+              onClick={() => setShowThemes(!showThemes)}
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: '1px solid var(--border)',
+                borderRadius: 7,
+                padding: '8px 12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                transition: 'all 0.15s'
+              }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border-red)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+            >
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: currentTheme.accent, flexShrink: 0, boxShadow: `0 0 6px ${currentTheme.accent}88` }} />
+              <span style={{ fontFamily: 'var(--font-head)', fontSize: 10, color: 'var(--text-3)', letterSpacing: '0.08em', flex: 1, textAlign: 'left' }}>
+                THEME
+              </span>
+              <span style={{ color: 'var(--text-3)', fontSize: 10 }}>{showThemes ? '▲' : '▼'}</span>
+            </button>
+
+            <AnimatePresence>
+              {showThemes && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                  transition={{ duration: 0.12 }}
+                  style={{
+                    position: 'absolute',
+                    bottom: 'calc(100% + 6px)',
+                    left: 0,
+                    right: 0,
+                    background: 'var(--bg-2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    zIndex: 100,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.6)'
+                  }}
+                >
+                  {themes.map(t => (
+                    <button
+                      key={t.id}
+                      onClick={() => handleTheme(t.id)}
+                      style={{
+                        width: '100%',
+                        background: themeId === t.id ? `${t.accent}14` : 'transparent',
+                        border: 'none',
+                        borderBottom: '1px solid var(--border)',
+                        padding: '10px 12px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        transition: 'background 0.1s'
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = `${t.accent}18`)}
+                      onMouseLeave={e => (e.currentTarget.style.background = themeId === t.id ? `${t.accent}14` : 'transparent')}
+                    >
+                      {/* Color swatch */}
+                      <span style={{
+                        width: 14,
+                        height: 14,
+                        borderRadius: '50%',
+                        background: t.swatch,
+                        flexShrink: 0,
+                        boxShadow: `0 0 8px ${t.swatch}88`,
+                        border: themeId === t.id ? `2px solid ${t.swatch}` : '2px solid transparent',
+                        outline: themeId === t.id ? `1px solid ${t.swatch}44` : 'none'
+                      }} />
+                      <span style={{ fontFamily: 'var(--font-head)', fontSize: 10, color: themeId === t.id ? t.accent : 'var(--text-2)', letterSpacing: '0.08em' }}>
+                        {t.name}
+                      </span>
+                      {themeId === t.id && (
+                        <span style={{ marginLeft: 'auto', color: t.accent, fontSize: 10 }}>✓</span>
+                      )}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Disconnect */}
           <button
@@ -111,7 +212,7 @@ export default function App() {
               padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
               transition: 'all 0.15s'
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,0,48,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,0,48,0.2)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'var(--border)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent' }}
           >
             <span style={{ color: 'var(--text-3)', fontSize: 12 }}>⏻</span>
@@ -120,7 +221,7 @@ export default function App() {
         </div>
 
         {/* Main content */}
-        <div style={{ flex: 1, overflow: 'hidden', padding: 20, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, overflow: 'hidden', padding: 20, display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentView}
