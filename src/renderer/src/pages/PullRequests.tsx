@@ -81,7 +81,7 @@ export default function PullRequests() {
             </button>
           ))}
         </div>
-        <NeonButton size="sm" variant="ghost" onClick={() => load(state)} icon="↻" tooltip="Reload pull requests from GitHub">Refresh</NeonButton>
+        <NeonButton size="sm" variant="ghost" onClick={() => load(state)} icon="↻" tooltip="Обновить список пул-реквестов с GitHub">Refresh</NeonButton>
       </div>
 
       {/* PR list */}

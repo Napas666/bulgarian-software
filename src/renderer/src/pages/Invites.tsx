@@ -163,7 +163,7 @@ export default function Invites() {
         </div>
 
         <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
-          <NeonButton onClick={handleInvite} disabled={sending || !username.trim()} size="sm" icon="→" tooltip="Send a GitHub collaboration invitation to this user">
+          <NeonButton onClick={handleInvite} disabled={sending || !username.trim()} size="sm" icon="→" tooltip="Отправить приглашение этому пользователю на GitHub">
             {sending ? 'Sending...' : 'Send Invite'}
           </NeonButton>
           {success && (
@@ -262,7 +262,7 @@ export default function Invites() {
                       PENDING
                     </span>
 
-                    <NeonButton size="sm" variant="danger" onClick={() => handleCancel(inv.id, inv.invitee.login)} icon="✗" tooltip="Revoke this pending invitation">
+                    <NeonButton size="sm" variant="danger" onClick={() => handleCancel(inv.id, inv.invitee.login)} icon="✗" tooltip="Отозвать это приглашение">
                       Cancel
                     </NeonButton>
                   </motion.div>

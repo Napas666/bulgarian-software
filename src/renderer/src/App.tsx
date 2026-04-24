@@ -98,10 +98,10 @@ export default function App() {
           {navItems.map(item => {
             const active = activeParent === item.id
             const tooltips: Record<string, string> = {
-              issues: 'View and manage repository issues',
-              prs: 'Review and manage pull requests',
-              commits: 'Browse commit history',
-              invites: 'Invite collaborators to the repository'
+              issues: 'Просмотр и управление задачами репозитория',
+              prs: 'Просмотр и управление пул-реквестами',
+              commits: 'История коммитов репозитория',
+              invites: 'Приглашение коллаборантов в репозиторий'
             }
             return (
               <Tooltip key={item.id} text={tooltips[item.id]} position="right">
@@ -137,7 +137,7 @@ export default function App() {
           </div>
 
           {/* Disconnect */}
-          <Tooltip text="Disconnect and return to setup screen" position="right">
+          <Tooltip text="Отключиться и вернуться к экрану входа" position="right">
             <button
               onClick={() => {
                 useStore.getState().setToken('')

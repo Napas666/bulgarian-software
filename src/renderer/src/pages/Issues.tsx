@@ -96,8 +96,8 @@ export default function Issues() {
           ))}
         </div>
 
-        <NeonButton size="sm" onClick={() => setCreating(true)} icon="＋" tooltip="Create a new issue in this repository">New Issue</NeonButton>
-        <NeonButton size="sm" variant="ghost" onClick={() => load(state)} icon="↻" tooltip="Reload the issues list from GitHub">Refresh</NeonButton>
+        <NeonButton size="sm" onClick={() => setCreating(true)} icon="＋" tooltip="Создать новую задачу в репозитории">New Issue</NeonButton>
+        <NeonButton size="sm" variant="ghost" onClick={() => load(state)} icon="↻" tooltip="Обновить список задач с GitHub">Refresh</NeonButton>
       </div>
 
       {/* New issue form */}
@@ -115,10 +115,10 @@ export default function Issues() {
               <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Title" style={{ width: '100%' }} />
               <textarea value={newBody} onChange={e => setNewBody(e.target.value)} placeholder="Description (markdown supported)" style={{ width: '100%', minHeight: 80 }} />
               <div style={{ display: 'flex', gap: 8 }}>
-                <NeonButton size="sm" onClick={handleCreate} disabled={submitting || !newTitle.trim()} tooltip="Submit and publish the new issue">
+                <NeonButton size="sm" onClick={handleCreate} disabled={submitting || !newTitle.trim()} tooltip="Опубликовать новую задачу на GitHub">
                   {submitting ? 'Submitting...' : 'Submit'}
                 </NeonButton>
-                <NeonButton size="sm" variant="ghost" onClick={() => setCreating(false)} tooltip="Discard and close this form">Cancel</NeonButton>
+                <NeonButton size="sm" variant="ghost" onClick={() => setCreating(false)} tooltip="Отменить и закрыть форму">Cancel</NeonButton>
               </div>
             </div>
           </motion.div>
