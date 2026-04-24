@@ -1,11 +1,13 @@
-import type { GitHubIssue, GitHubComment, GitHubLabel, GitHubPR, GitHubRepo, GitHubCommit } from '../types'
+import type { GitHubIssue, GitHubComment, GitHubLabel, GitHubPR, GitHubRepo, GitHubCommit, GitHubInvitation } from '../types'
 
 let TOKEN = ''
 let REPO = ''  // owner/repo
+export let DEMO = false
 
 export function setToken(t: string) { TOKEN = t }
 export function setRepo(r: string) { REPO = r }
 export function getRepo() { return REPO }
+export function setDemo(v: boolean) { DEMO = v }
 
 async function gh(path: string, opts: RequestInit = {}) {
   const res = await fetch(`https://api.github.com${path}`, {
@@ -99,6 +101,16 @@ export const submitPRReview = (n: number, event: 'APPROVE' | 'REQUEST_CHANGES' |
 // ── Commits ───────────────────────────────────────────────────────────────
 export const listCommits = (page = 1): Promise<GitHubCommit[]> =>
   gh(`/repos/${REPO}/commits?per_page=30&page=${page}`)
+
+// ── Collaborator Invitations ──────────────────────────────────────────────
+export const listInvitations = (): Promise<GitHubInvitation[]> =>
+  gh(`/repos/${REPO}/invitations`)
+
+export const inviteCollaborator = (username: string, permission: 'pull' | 'triage' | 'push' | 'maintain' | 'admin'): Promise<GitHubInvitation | null> =>
+  gh(`/repos/${REPO}/collaborators/${username}`, { method: 'PUT', body: JSON.stringify({ permission }) })
+
+export const cancelInvitation = (invitationId: number): Promise<null> =>
+  gh(`/repos/${REPO}/invitations/${invitationId}`, { method: 'DELETE' })
 
 // ── Token validation ──────────────────────────────────────────────────────
 export const validateToken = (): Promise<{ login: string; name: string; avatar_url: string }> =>

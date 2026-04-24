@@ -76,4 +76,13 @@ export interface GitHubCommit {
   html_url: string
 }
 
-export type View = 'issues' | 'issue-detail' | 'prs' | 'pr-detail' | 'commits'
+export interface GitHubInvitation {
+  id: number
+  login: string
+  permissions: string
+  created_at: string
+  invitee: GitHubUser
+  inviter: GitHubUser
+}
+
+export type View = 'issues' | 'issue-detail' | 'prs' | 'pr-detail' | 'commits' | 'invites'

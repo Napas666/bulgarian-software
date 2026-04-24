@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { listCommits, getRepo_ } from '../api/github'
+import { listCommits, getRepo_, DEMO } from '../api/github'
+import { MOCK_COMMITS } from '../api/mockData'
 import type { GitHubCommit } from '../types'
 import NeonButton from '../components/ui/NeonButton'
 import { useStore } from '../store/useStore'
@@ -26,14 +27,21 @@ export default function Commits() {
     setLoading(true)
     setError('')
     try {
-      if (p === 1) {
-        const repo = await getRepo_()
-        setDefaultBranch(repo.default_branch)
+      if (DEMO) {
+        await new Promise(r => setTimeout(r, 250))
+        setDefaultBranch('main')
+        setCommits(MOCK_COMMITS)
+        setHasMore(false)
+      } else {
+        if (p === 1) {
+          const repo = await getRepo_()
+          setDefaultBranch(repo.default_branch)
+        }
+        const data = await listCommits(p)
+        if (p === 1) setCommits(data)
+        else setCommits(prev => [...prev, ...data])
+        setHasMore(data.length === 30)
       }
-      const data = await listCommits(p)
-      if (p === 1) setCommits(data)
-      else setCommits(prev => [...prev, ...data])
-      setHasMore(data.length === 30)
     } catch (e: any) { setError(e.message) }
     finally { setLoading(false) }
   }

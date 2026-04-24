@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { listIssues, createIssue } from '../api/github'
+import { listIssues, createIssue, DEMO } from '../api/github'
+import { MOCK_ISSUES } from '../api/mockData'
 import { useStore } from '../store/useStore'
 import type { GitHubIssue } from '../types'
 import NeonButton from '../components/ui/NeonButton'
@@ -30,8 +31,13 @@ export default function Issues() {
     setLoading(true)
     setError('')
     try {
-      const data = await listIssues(s)
-      setIssues(data.filter(i => !i.pull_request))
+      if (DEMO) {
+        await new Promise(r => setTimeout(r, 300))
+        setIssues(MOCK_ISSUES.filter(i => i.state === s))
+      } else {
+        const data = await listIssues(s)
+        setIssues(data.filter(i => !i.pull_request))
+      }
     } catch (e: any) { setError(e.message) }
     finally { setLoading(false) }
   }

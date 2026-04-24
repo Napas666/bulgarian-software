@@ -8,10 +8,12 @@ interface AppState {
   currentView: View
   selectedNumber: number | null
   themeId: string
+  demoMode: boolean
   setToken: (t: string) => void
   setRepoUrl: (r: string) => void
   setView: (v: View, n?: number) => void
   setTheme: (id: string) => void
+  setDemoMode: (v: boolean) => void
 }
 
 export const useStore = create<AppState>()(
@@ -22,10 +24,12 @@ export const useStore = create<AppState>()(
       currentView: 'issues',
       selectedNumber: null,
       themeId: 'red',
+      demoMode: false,
       setToken: (token) => set({ token }),
       setRepoUrl: (repoUrl) => set({ repoUrl }),
       setView: (currentView, selectedNumber = null) => set({ currentView, selectedNumber }),
-      setTheme: (themeId) => set({ themeId })
+      setTheme: (themeId) => set({ themeId }),
+      setDemoMode: (demoMode) => set({ demoMode })
     }),
     { name: 'bulgarian-store' }
   )

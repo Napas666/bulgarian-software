@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { getPR, updatePR, mergePR, listPRComments, addPRComment, editComment, deleteComment, submitPRReview } from '../api/github'
+import { getPR, updatePR, mergePR, listPRComments, addPRComment, editComment, deleteComment, submitPRReview, DEMO } from '../api/github'
+import { MOCK_PRS, MOCK_COMMENTS } from '../api/mockData'
 import { useStore } from '../store/useStore'
 import type { GitHubPR, GitHubComment } from '../types'
 import NeonButton from '../components/ui/NeonButton'
@@ -46,11 +47,20 @@ export default function PRDetail() {
     setLoading(true)
     setError('')
     try {
-      const [p, cmts] = await Promise.all([getPR(number), listPRComments(number)])
-      setPR(p)
-      setComments(cmts)
-      setEditTitle(p.title)
-      setEditBody(p.body ?? '')
+      if (DEMO) {
+        await new Promise(r => setTimeout(r, 200))
+        const p = MOCK_PRS.find(x => x.number === number) ?? MOCK_PRS[0]
+        setPR(p)
+        setComments(MOCK_COMMENTS.slice(0, 2))
+        setEditTitle(p.title)
+        setEditBody(p.body ?? '')
+      } else {
+        const [p, cmts] = await Promise.all([getPR(number), listPRComments(number)])
+        setPR(p)
+        setComments(cmts)
+        setEditTitle(p.title)
+        setEditBody(p.body ?? '')
+      }
     } catch (e: any) { setError(e.message) }
     finally { setLoading(false) }
   }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '../store/useStore'
-import { setToken, setRepo, validateToken } from '../api/github'
+import { setToken, setRepo, setDemo, validateToken } from '../api/github'
 import NeonButton from '../components/ui/NeonButton'
 
 export default function Setup() {
@@ -9,6 +9,7 @@ export default function Setup() {
   const storeRepo = useStore(s => s.repoUrl)
   const setStoreToken = useStore(s => s.setToken)
   const setStoreRepo = useStore(s => s.setRepoUrl)
+  const setStoreDemoMode = useStore(s => s.setDemoMode)
 
   const [tokenInput, setTokenInput] = useState(storeToken)
   const [repoInput, setRepoInput] = useState(storeRepo)
@@ -152,6 +153,27 @@ export default function Setup() {
               icon={loading ? undefined : '⚡'}
             >
               {loading ? <><span className="spin">◌</span>&nbsp;Connecting...</> : 'Connect'}
+            </NeonButton>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '4px 0' }}>
+              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-3)' }}>or</span>
+              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+            </div>
+
+            <NeonButton
+              fullWidth
+              variant="ghost"
+              icon="◈"
+              onClick={() => {
+                setDemo(true)
+                setStoreDemoMode(true)
+                setStoreToken('demo')
+                setStoreRepo('demo/repo')
+                window.location.reload()
+              }}
+            >
+              Try Demo — no token needed
             </NeonButton>
           </div>
         )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { listPRs } from '../api/github'
+import { listPRs, DEMO } from '../api/github'
+import { MOCK_PRS } from '../api/mockData'
 import { useStore } from '../store/useStore'
 import type { GitHubPR } from '../types'
 import NeonButton from '../components/ui/NeonButton'
@@ -38,8 +39,13 @@ export default function PullRequests() {
     setLoading(true)
     setError('')
     try {
-      const data = await listPRs(s)
-      setPRs(data)
+      if (DEMO) {
+        await new Promise(r => setTimeout(r, 250))
+        setPRs(MOCK_PRS.filter(p => s === 'closed' ? (p.merged || p.state === 'closed') : p.state === 'open'))
+      } else {
+        const data = await listPRs(s)
+        setPRs(data)
+      }
     } catch (e: any) { setError(e.message) }
     finally { setLoading(false) }
   }

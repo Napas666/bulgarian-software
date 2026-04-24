@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   getIssue, updateIssue, listComments, addComment, editComment, deleteComment,
-  listLabels, addLabels, removeLabel
+  listLabels, addLabels, removeLabel, DEMO
 } from '../api/github'
+import { MOCK_ISSUES, MOCK_COMMENTS, MOCK_LABELS } from '../api/mockData'
 import { useStore } from '../store/useStore'
 import type { GitHubIssue, GitHubComment, GitHubLabel } from '../types'
 import NeonButton from '../components/ui/NeonButton'
@@ -45,12 +46,22 @@ export default function IssueDetail() {
     setLoading(true)
     setError('')
     try {
-      const [iss, cmts, lbls] = await Promise.all([getIssue(number), listComments(number), listLabels()])
-      setIssue(iss)
-      setComments(cmts)
-      setAllLabels(lbls)
-      setEditTitle(iss.title)
-      setEditBody(iss.body ?? '')
+      if (DEMO) {
+        await new Promise(r => setTimeout(r, 200))
+        const iss = MOCK_ISSUES.find(i => i.number === number) ?? MOCK_ISSUES[0]
+        setIssue(iss)
+        setComments(MOCK_COMMENTS)
+        setAllLabels(MOCK_LABELS)
+        setEditTitle(iss.title)
+        setEditBody(iss.body ?? '')
+      } else {
+        const [iss, cmts, lbls] = await Promise.all([getIssue(number), listComments(number), listLabels()])
+        setIssue(iss)
+        setComments(cmts)
+        setAllLabels(lbls)
+        setEditTitle(iss.title)
+        setEditBody(iss.body ?? '')
+      }
     } catch (e: any) { setError(e.message) }
     finally { setLoading(false) }
   }
@@ -187,7 +198,7 @@ export default function IssueDetail() {
         )}
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {!editingBody ? (
             <NeonButton size="sm" variant="ghost" onClick={() => setEditingBody(true)} icon="✎">Edit</NeonButton>
           ) : (
@@ -196,6 +207,10 @@ export default function IssueDetail() {
               <NeonButton size="sm" variant="ghost" onClick={() => { setEditingBody(false); setEditTitle(issue.title); setEditBody(issue.body ?? '') }}>Cancel</NeonButton>
             </>
           )}
+
+          {/* Separator + Close button pushed to far right */}
+          <div style={{ flex: 1 }} />
+          <div style={{ width: 1, height: 20, background: 'var(--border)', flexShrink: 0 }} />
           <NeonButton
             size="sm"
             variant={issue.state === 'open' ? 'danger' : 'success'}

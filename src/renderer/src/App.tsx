@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from './store/useStore'
-import { setToken, setRepo } from './api/github'
+import { setToken, setRepo, setDemo } from './api/github'
 import { themes, applyTheme } from './themes'
 import TitleBar from './components/layout/TitleBar'
 import Setup from './pages/Setup'
@@ -10,12 +10,14 @@ import IssueDetail from './pages/IssueDetail'
 import PullRequests from './pages/PullRequests'
 import PRDetail from './pages/PRDetail'
 import Commits from './pages/Commits'
+import Invites from './pages/Invites'
 import type { View } from './types'
 
 const navItems: { id: View; label: string; icon: string }[] = [
-  { id: 'issues', label: 'Issues', icon: '◉' },
-  { id: 'prs', label: 'Pull Requests', icon: '⊕' },
-  { id: 'commits', label: 'Commits', icon: '◈' }
+  { id: 'issues',  label: 'Issues',        icon: '◉' },
+  { id: 'prs',     label: 'Pull Requests',  icon: '⊕' },
+  { id: 'commits', label: 'Commits',        icon: '◈' },
+  { id: 'invites', label: 'Invites',        icon: '→' },
 ]
 
 const parentView: Partial<Record<View, View>> = {
@@ -28,16 +30,20 @@ export default function App() {
   const repoUrl = useStore(s => s.repoUrl)
   const currentView = useStore(s => s.currentView)
   const themeId = useStore(s => s.themeId)
+  const demoMode = useStore(s => s.demoMode)
   const setView = useStore(s => s.setView)
   const setTheme = useStore(s => s.setTheme)
   const [showThemes, setShowThemes] = useState(false)
 
-  // Restore API state + apply saved theme on mount
   useEffect(() => {
-    if (token) setToken(token)
-    if (repoUrl) {
-      const path = repoUrl.replace('https://github.com/', '').replace(/\/$/, '')
-      setRepo(path)
+    if (demoMode) {
+      setDemo(true)
+    } else {
+      if (token) setToken(token)
+      if (repoUrl) {
+        const path = repoUrl.replace('https://github.com/', '').replace(/\/$/, '')
+        setRepo(path)
+      }
     }
     const saved = themes.find(t => t.id === themeId) ?? themes[0]
     applyTheme(saved)
@@ -70,14 +76,29 @@ export default function App() {
 
         {/* Sidebar */}
         <div style={{
-          width: 200,
-          flexShrink: 0,
+          width: 200, flexShrink: 0,
           background: 'rgba(0,0,0,0.5)',
           borderRight: '1px solid var(--border)',
-          display: 'flex',
-          flexDirection: 'column',
+          display: 'flex', flexDirection: 'column',
           padding: '16px 8px'
         }}>
+
+          {/* Demo banner */}
+          {demoMode && (
+            <div style={{
+              background: 'rgba(255,184,0,0.08)',
+              border: '1px solid rgba(255,184,0,0.25)',
+              borderRadius: 6,
+              padding: '5px 10px',
+              marginBottom: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}>
+              <span style={{ fontSize: 10 }}>◈</span>
+              <span style={{ fontFamily: 'var(--font-head)', fontSize: 9, color: 'var(--yellow)', letterSpacing: '0.08em' }}>DEMO MODE</span>
+            </div>
+          )}
 
           {/* Nav */}
           {navItems.map(item => {
@@ -92,14 +113,11 @@ export default function App() {
                   borderRadius: 7,
                   padding: '9px 12px',
                   cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  marginBottom: 2,
-                  transition: 'all 0.15s'
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  marginBottom: 2, transition: 'all 0.15s'
                 }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
-                onMouseLeave={e => { if (!active) e.currentTarget.style.background = active ? `${currentTheme.accent}18` : 'transparent' }}
+                onMouseLeave={e => { e.currentTarget.style.background = active ? `${currentTheme.accent}18` : 'transparent' }}
               >
                 <span style={{ fontSize: 14, color: active ? 'var(--red)' : 'var(--text-3)' }}>{item.icon}</span>
                 <span style={{ fontFamily: 'var(--font-head)', fontSize: 11, letterSpacing: '0.08em', color: active ? 'var(--red)' : 'var(--text-2)' }}>
@@ -116,24 +134,16 @@ export default function App() {
             <button
               onClick={() => setShowThemes(!showThemes)}
               style={{
-                width: '100%',
-                background: 'transparent',
-                border: '1px solid var(--border)',
-                borderRadius: 7,
-                padding: '8px 12px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                transition: 'all 0.15s'
+                width: '100%', background: 'transparent',
+                border: '1px solid var(--border)', borderRadius: 7,
+                padding: '8px 12px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.15s'
               }}
               onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border-red)')}
               onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
             >
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: currentTheme.accent, flexShrink: 0, boxShadow: `0 0 6px ${currentTheme.accent}88` }} />
-              <span style={{ fontFamily: 'var(--font-head)', fontSize: 10, color: 'var(--text-3)', letterSpacing: '0.08em', flex: 1, textAlign: 'left' }}>
-                THEME
-              </span>
+              <span style={{ fontFamily: 'var(--font-head)', fontSize: 10, color: 'var(--text-3)', letterSpacing: '0.08em', flex: 1, textAlign: 'left' }}>THEME</span>
               <span style={{ color: 'var(--text-3)', fontSize: 10 }}>{showThemes ? '▲' : '▼'}</span>
             </button>
 
@@ -145,15 +155,9 @@ export default function App() {
                   exit={{ opacity: 0, y: 6, scale: 0.97 }}
                   transition={{ duration: 0.12 }}
                   style={{
-                    position: 'absolute',
-                    bottom: 'calc(100% + 6px)',
-                    left: 0,
-                    right: 0,
-                    background: 'var(--bg-2)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 8,
-                    overflow: 'hidden',
-                    zIndex: 100,
+                    position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0,
+                    background: 'var(--bg-2)', border: '1px solid var(--border)',
+                    borderRadius: 8, overflow: 'hidden', zIndex: 100,
                     boxShadow: '0 8px 32px rgba(0,0,0,0.6)'
                   }}
                 >
@@ -162,37 +166,17 @@ export default function App() {
                       key={t.id}
                       onClick={() => handleTheme(t.id)}
                       style={{
-                        width: '100%',
-                        background: themeId === t.id ? `${t.accent}14` : 'transparent',
-                        border: 'none',
-                        borderBottom: '1px solid var(--border)',
-                        padding: '10px 12px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        transition: 'background 0.1s'
+                        width: '100%', background: themeId === t.id ? `${t.accent}14` : 'transparent',
+                        border: 'none', borderBottom: '1px solid var(--border)',
+                        padding: '10px 12px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 10, transition: 'background 0.1s'
                       }}
                       onMouseEnter={e => (e.currentTarget.style.background = `${t.accent}18`)}
                       onMouseLeave={e => (e.currentTarget.style.background = themeId === t.id ? `${t.accent}14` : 'transparent')}
                     >
-                      {/* Color swatch */}
-                      <span style={{
-                        width: 14,
-                        height: 14,
-                        borderRadius: '50%',
-                        background: t.swatch,
-                        flexShrink: 0,
-                        boxShadow: `0 0 8px ${t.swatch}88`,
-                        border: themeId === t.id ? `2px solid ${t.swatch}` : '2px solid transparent',
-                        outline: themeId === t.id ? `1px solid ${t.swatch}44` : 'none'
-                      }} />
-                      <span style={{ fontFamily: 'var(--font-head)', fontSize: 10, color: themeId === t.id ? t.accent : 'var(--text-2)', letterSpacing: '0.08em' }}>
-                        {t.name}
-                      </span>
-                      {themeId === t.id && (
-                        <span style={{ marginLeft: 'auto', color: t.accent, fontSize: 10 }}>✓</span>
-                      )}
+                      <span style={{ width: 14, height: 14, borderRadius: '50%', background: t.swatch, flexShrink: 0, boxShadow: `0 0 8px ${t.swatch}88`, border: themeId === t.id ? `2px solid ${t.swatch}` : '2px solid transparent' }} />
+                      <span style={{ fontFamily: 'var(--font-head)', fontSize: 10, color: themeId === t.id ? t.accent : 'var(--text-2)', letterSpacing: '0.08em' }}>{t.name}</span>
+                      {themeId === t.id && <span style={{ marginLeft: 'auto', color: t.accent, fontSize: 10 }}>✓</span>}
                     </button>
                   ))}
                 </motion.div>
@@ -205,12 +189,12 @@ export default function App() {
             onClick={() => {
               useStore.getState().setToken('')
               useStore.getState().setRepoUrl('')
+              useStore.getState().setDemoMode(false)
               window.location.reload()
             }}
             style={{
               background: 'transparent', border: '1px solid transparent', borderRadius: 7,
-              padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
-              transition: 'all 0.15s'
+              padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.15s'
             }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'var(--border)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent' }}
@@ -231,11 +215,12 @@ export default function App() {
               transition={{ duration: 0.18 }}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}
             >
-              {currentView === 'issues' && <Issues />}
+              {currentView === 'issues'       && <Issues />}
               {currentView === 'issue-detail' && <IssueDetail />}
-              {currentView === 'prs' && <PullRequests />}
-              {currentView === 'pr-detail' && <PRDetail />}
-              {currentView === 'commits' && <Commits />}
+              {currentView === 'prs'          && <PullRequests />}
+              {currentView === 'pr-detail'    && <PRDetail />}
+              {currentView === 'commits'      && <Commits />}
+              {currentView === 'invites'      && <Invites />}
             </motion.div>
           </AnimatePresence>
         </div>
