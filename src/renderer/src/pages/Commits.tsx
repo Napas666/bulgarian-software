@@ -65,7 +65,7 @@ export default function Commits() {
           <span style={{ fontFamily: 'var(--font-head)', fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.1em' }}>COMMITS </span>
           {defaultBranch && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-2)' }}>on {defaultBranch}</span>}
         </div>
-        <NeonButton size="sm" variant="ghost" onClick={() => load(1)} icon="↻">Refresh</NeonButton>
+        <NeonButton size="sm" variant="ghost" onClick={() => load(1)} icon="↻" tooltip="Reload commits from GitHub">Refresh</NeonButton>
       </div>
 
       <div className="panel" style={{ flex: 1, overflow: 'auto' }}>

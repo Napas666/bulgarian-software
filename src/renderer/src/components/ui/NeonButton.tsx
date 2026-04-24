@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import type { ReactNode, CSSProperties } from 'react'
+import Tooltip from './Tooltip'
 
 interface Props {
   children: ReactNode
@@ -10,6 +11,7 @@ interface Props {
   fullWidth?: boolean
   icon?: string
   style?: CSSProperties
+  tooltip?: string
 }
 
 const variants = {
@@ -19,9 +21,9 @@ const variants = {
   success: { bg: 'rgba(0,255,136,0.1)', border: 'rgba(0,255,136,0.3)', color: 'var(--green)', hover: 'rgba(0,255,136,0.18)' }
 }
 
-export default function NeonButton({ children, onClick, variant = 'primary', size = 'md', disabled, fullWidth, icon, style }: Props) {
+export default function NeonButton({ children, onClick, variant = 'primary', size = 'md', disabled, fullWidth, icon, style, tooltip }: Props) {
   const v = variants[variant]
-  return (
+  const btn = (
     <motion.button
       whileHover={disabled ? {} : { scale: 1.02 }}
       whileTap={disabled ? {} : { scale: 0.97 }}
@@ -52,4 +54,6 @@ export default function NeonButton({ children, onClick, variant = 'primary', siz
       {children}
     </motion.button>
   )
+  if (tooltip) return <Tooltip text={tooltip}>{btn}</Tooltip>
+  return btn
 }

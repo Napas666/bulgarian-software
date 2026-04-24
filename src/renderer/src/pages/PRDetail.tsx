@@ -184,21 +184,21 @@ export default function PRDetail() {
         {/* Actions */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {!editingPR ? (
-            <NeonButton size="sm" variant="ghost" onClick={() => setEditingPR(true)} icon="✎">Edit</NeonButton>
+            <NeonButton size="sm" variant="ghost" onClick={() => setEditingPR(true)} icon="✎" tooltip="Edit PR title and description">Edit</NeonButton>
           ) : (
             <>
-              <NeonButton size="sm" onClick={saveEditPR}>Save</NeonButton>
-              <NeonButton size="sm" variant="ghost" onClick={() => setEditingPR(false)}>Cancel</NeonButton>
+              <NeonButton size="sm" onClick={saveEditPR} tooltip="Save changes to GitHub">Save</NeonButton>
+              <NeonButton size="sm" variant="ghost" onClick={() => setEditingPR(false)} tooltip="Discard changes">Cancel</NeonButton>
             </>
           )}
           {!pr.merged && pr.state === 'open' && (
-            <NeonButton size="sm" variant="danger" onClick={handleClose} icon="✗">Close PR</NeonButton>
+            <NeonButton size="sm" variant="danger" onClick={handleClose} icon="✗" tooltip="Close this pull request without merging">Close PR</NeonButton>
           )}
           {pr.state === 'closed' && !pr.merged && (
-            <NeonButton size="sm" variant="success" onClick={handleClose} icon="↺">Reopen PR</NeonButton>
+            <NeonButton size="sm" variant="success" onClick={handleClose} icon="↺" tooltip="Reopen this pull request">Reopen PR</NeonButton>
           )}
           {!pr.merged && pr.state === 'open' && (
-            <NeonButton size="sm" variant="ghost" onClick={() => setShowReview(!showReview)} icon="◈">Review</NeonButton>
+            <NeonButton size="sm" variant="ghost" onClick={() => setShowReview(!showReview)} icon="◈" tooltip="Submit an approval, request changes, or leave a review comment">Review</NeonButton>
           )}
         </div>
       </div>
@@ -232,7 +232,7 @@ export default function PRDetail() {
             <div style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)', fontSize: 12, marginBottom: 8 }}>✓ Merged successfully</div>
           )}
           {error && <div style={{ color: '#ff4455', fontFamily: 'var(--font-mono)', fontSize: 12, marginBottom: 8 }}>✗ {error}</div>}
-          <NeonButton variant="success" onClick={handleMerge} disabled={merging} icon="⊕">
+          <NeonButton variant="success" onClick={handleMerge} disabled={merging} icon="⊕" tooltip={`Merge this PR into ${pr.base.ref} using ${mergeMethod} strategy`}>
             {merging ? 'Merging...' : `Merge via ${mergeMethod}`}
           </NeonButton>
         </motion.div>
@@ -252,9 +252,9 @@ export default function PRDetail() {
           <div style={{ fontFamily: 'var(--font-head)', fontSize: 11, color: 'var(--text-3)', marginBottom: 10 }}>SUBMIT REVIEW</div>
           <textarea value={reviewBody} onChange={e => setReviewBody(e.target.value)} placeholder="Review comment (optional)" style={{ width: '100%', minHeight: 80, marginBottom: 10 }} />
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <NeonButton size="sm" variant="success" onClick={() => handleReview('APPROVE')} disabled={submittingReview} icon="✓">Approve</NeonButton>
-            <NeonButton size="sm" variant="danger" onClick={() => handleReview('REQUEST_CHANGES')} disabled={submittingReview} icon="✗">Request Changes</NeonButton>
-            <NeonButton size="sm" variant="ghost" onClick={() => handleReview('COMMENT')} disabled={submittingReview} icon="💬">Comment</NeonButton>
+            <NeonButton size="sm" variant="success" onClick={() => handleReview('APPROVE')} disabled={submittingReview} icon="✓" tooltip="Approve this PR — signals it's ready to merge">Approve</NeonButton>
+            <NeonButton size="sm" variant="danger" onClick={() => handleReview('REQUEST_CHANGES')} disabled={submittingReview} icon="✗" tooltip="Request changes before this PR can be merged">Request Changes</NeonButton>
+            <NeonButton size="sm" variant="ghost" onClick={() => handleReview('COMMENT')} disabled={submittingReview} icon="💬" tooltip="Leave a comment review without approving or blocking">Comment</NeonButton>
           </div>
         </motion.div>
       )}
@@ -280,20 +280,20 @@ export default function PRDetail() {
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-3)' }}>{timeAgo(c.created_at)}</span>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <NeonButton size="sm" variant="ghost" onClick={() => { setEditingCommentId(c.id); setEditCommentBody(c.body) }} icon="✎">Edit</NeonButton>
+              <NeonButton size="sm" variant="ghost" onClick={() => { setEditingCommentId(c.id); setEditCommentBody(c.body) }} icon="✎" tooltip="Edit this comment">Edit</NeonButton>
               <NeonButton size="sm" variant="danger" onClick={async () => {
                 if (!confirm('Delete?')) return
                 await deleteComment(c.id)
                 setComments(prev => prev.filter(x => x.id !== c.id))
-              }} icon="✗">Delete</NeonButton>
+              }} icon="✗" tooltip="Permanently delete this comment">Delete</NeonButton>
             </div>
           </div>
           {editingCommentId === c.id ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <textarea value={editCommentBody} onChange={e => setEditCommentBody(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
               <div style={{ display: 'flex', gap: 6 }}>
-                <NeonButton size="sm" onClick={() => saveComment(c.id)}>Save</NeonButton>
-                <NeonButton size="sm" variant="ghost" onClick={() => setEditingCommentId(null)}>Cancel</NeonButton>
+                <NeonButton size="sm" onClick={() => saveComment(c.id)} tooltip="Save comment changes to GitHub">Save</NeonButton>
+                <NeonButton size="sm" variant="ghost" onClick={() => setEditingCommentId(null)} tooltip="Discard comment changes">Cancel</NeonButton>
               </div>
             </div>
           ) : (
@@ -306,7 +306,7 @@ export default function PRDetail() {
       <div className="panel-red" style={{ padding: '14px 18px', marginTop: 4, flexShrink: 0 }}>
         <div style={{ fontFamily: 'var(--font-head)', fontSize: 10, color: 'var(--red)', letterSpacing: '0.1em', marginBottom: 8 }}>ADD COMMENT</div>
         <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Leave a comment..." style={{ width: '100%', minHeight: 80, marginBottom: 8 }} />
-        <NeonButton size="sm" onClick={submitComment} disabled={submittingComment || !newComment.trim()} icon="↵">
+        <NeonButton size="sm" onClick={submitComment} disabled={submittingComment || !newComment.trim()} icon="↵" tooltip="Post comment to this pull request">
           {submittingComment ? 'Submitting...' : 'Comment'}
         </NeonButton>
       </div>

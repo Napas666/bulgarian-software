@@ -200,11 +200,11 @@ export default function IssueDetail() {
         {/* Actions */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {!editingBody ? (
-            <NeonButton size="sm" variant="ghost" onClick={() => setEditingBody(true)} icon="✎">Edit</NeonButton>
+            <NeonButton size="sm" variant="ghost" onClick={() => setEditingBody(true)} icon="✎" tooltip="Edit issue title and description">Edit</NeonButton>
           ) : (
             <>
-              <NeonButton size="sm" onClick={saveEdit} disabled={savingEdit}>{savingEdit ? 'Saving...' : 'Save'}</NeonButton>
-              <NeonButton size="sm" variant="ghost" onClick={() => { setEditingBody(false); setEditTitle(issue.title); setEditBody(issue.body ?? '') }}>Cancel</NeonButton>
+              <NeonButton size="sm" onClick={saveEdit} disabled={savingEdit} tooltip="Save changes to GitHub">{savingEdit ? 'Saving...' : 'Save'}</NeonButton>
+              <NeonButton size="sm" variant="ghost" onClick={() => { setEditingBody(false); setEditTitle(issue.title); setEditBody(issue.body ?? '') }} tooltip="Discard changes">Cancel</NeonButton>
             </>
           )}
 
@@ -217,6 +217,7 @@ export default function IssueDetail() {
             onClick={toggleState}
             disabled={togglingState}
             icon={issue.state === 'open' ? '✗' : '↺'}
+            tooltip={issue.state === 'open' ? 'Close this issue — marks it as resolved' : 'Reopen this issue'}
           >
             {togglingState ? '...' : issue.state === 'open' ? 'Close Issue' : 'Reopen Issue'}
           </NeonButton>
@@ -244,16 +245,16 @@ export default function IssueDetail() {
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-3)' }}>{timeAgo(c.created_at)}</span>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <NeonButton size="sm" variant="ghost" onClick={() => { setEditingCommentId(c.id); setEditCommentBody(c.body) }} icon="✎">Edit</NeonButton>
-              <NeonButton size="sm" variant="danger" onClick={() => removeCommentHandler(c.id)} icon="✗">Delete</NeonButton>
+              <NeonButton size="sm" variant="ghost" onClick={() => { setEditingCommentId(c.id); setEditCommentBody(c.body) }} icon="✎" tooltip="Edit this comment">Edit</NeonButton>
+              <NeonButton size="sm" variant="danger" onClick={() => removeCommentHandler(c.id)} icon="✗" tooltip="Permanently delete this comment">Delete</NeonButton>
             </div>
           </div>
           {editingCommentId === c.id ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <textarea value={editCommentBody} onChange={e => setEditCommentBody(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
               <div style={{ display: 'flex', gap: 6 }}>
-                <NeonButton size="sm" onClick={() => saveComment(c.id)}>Save</NeonButton>
-                <NeonButton size="sm" variant="ghost" onClick={() => setEditingCommentId(null)}>Cancel</NeonButton>
+                <NeonButton size="sm" onClick={() => saveComment(c.id)} tooltip="Save comment changes to GitHub">Save</NeonButton>
+                <NeonButton size="sm" variant="ghost" onClick={() => setEditingCommentId(null)} tooltip="Discard comment changes">Cancel</NeonButton>
               </div>
             </div>
           ) : (
@@ -273,7 +274,7 @@ export default function IssueDetail() {
           placeholder="Leave a comment..."
           style={{ width: '100%', minHeight: 80, marginBottom: 8 }}
         />
-        <NeonButton onClick={submitComment} disabled={submittingComment || !newComment.trim()} size="sm" icon="↵">
+        <NeonButton onClick={submitComment} disabled={submittingComment || !newComment.trim()} size="sm" icon="↵" tooltip="Post comment to this issue">
           {submittingComment ? 'Submitting...' : 'Comment'}
         </NeonButton>
       </div>
