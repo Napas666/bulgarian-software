@@ -1,0 +1,95 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red: #ff0030;
+  --red-dim: #cc0025;
+  --bg: #08080f;
+  --bg-2: #0d0d1a;
+  --bg-3: #111122;
+  --border: rgba(255,255,255,0.07);
+  --border-red: rgba(255,0,48,0.25);
+  --text: rgba(255,255,255,0.92);
+  --text-2: rgba(255,255,255,0.6);
+  --text-3: rgba(255,255,255,0.3);
+  --green: #00ff88;
+  --yellow: #ffb800;
+  --blue: #00aaff;
+  --purple: #cc88ff;
+  --font-head: 'Orbitron', monospace;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --red-glow: 0 0 20px rgba(255,0,48,0.4);
+  --red-glow-sm: 0 0 8px rgba(255,0,48,0.3);
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow: hidden;
+  user-select: none;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,0,48,0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,0,48,0.5); }
+
+.panel {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.panel-red {
+  background: rgba(255,0,48,0.04);
+  border: 1px solid var(--border-red);
+  border-radius: 10px;
+}
+
+input, textarea {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input:focus, textarea:focus {
+  border-color: rgba(255,0,48,0.4);
+  background: rgba(255,0,48,0.04);
+}
+
+textarea { resize: vertical; line-height: 1.6; }
+
+select {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 6px 10px;
+  outline: none;
+  cursor: pointer;
+}
+
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,0,48,0.2); }
+  50% { box-shadow: 0 0 20px rgba(255,0,48,0.5); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin { animation: spin 1s linear infinite; display: inline-block; }

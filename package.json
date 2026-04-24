@@ -1,0 +1,27 @@
+{
+  "name": "bulgarian-software",
+  "version": "1.0.0",
+  "description": "Bulgarian Software — GitHub operations from your desk",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "cross-env ELECTRON_RUN_AS_NODE='' electron-vite dev",
+    "build": "cross-env ELECTRON_RUN_AS_NODE='' electron-vite build",
+    "preview": "cross-env ELECTRON_RUN_AS_NODE='' electron-vite preview"
+  },
+  "dependencies": {
+    "framer-motion": "^11.3.31",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "cross-env": "^10.1.0",
+    "electron": "^28.3.3",
+    "electron-vite": "^2.3.0",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2"
+  }
+}
