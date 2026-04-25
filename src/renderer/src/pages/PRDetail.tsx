@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { getPR, updatePR, mergePR, listPRComments, addPRComment, editComment, deleteComment, submitPRReview, DEMO } from '../api/github'
+import { getPR, updatePR, mergePR, listPRComments, addPRComment, editComment, deleteComment, submitPRReview, getPRDiff, DEMO } from '../api/github'
 import { MOCK_PRS, MOCK_COMMENTS } from '../api/mockData'
 import { useStore } from '../store/useStore'
 import type { GitHubPR, GitHubComment } from '../types'
 import NeonButton from '../components/ui/NeonButton'
 import LabelBadge from '../components/ui/LabelBadge'
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 
 function timeAgo(iso: string) {
   const d = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
@@ -18,6 +19,8 @@ function timeAgo(iso: string) {
 export default function PRDetail() {
   const number = useStore(s => s.selectedNumber)!
   const setView = useStore(s => s.setView)
+  const addToast = useStore(s => s.addToast)
+  const pushHistory = useStore(s => s.pushHistory)
 
   const [pr, setPR] = useState<GitHubPR | null>(null)
   const [comments, setComments] = useState<GitHubComment[]>([])
@@ -38,6 +41,9 @@ export default function PRDetail() {
   const [reviewBody, setReviewBody] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
   const [showReview, setShowReview] = useState(false)
+  const [showDiff, setShowDiff] = useState(false)
+  const [diff, setDiff] = useState<string | null>(null)
+  const [loadingDiff, setLoadingDiff] = useState(false)
 
   const [editingPR, setEditingPR] = useState(false)
   const [editTitle, setEditTitle] = useState('')
@@ -67,6 +73,12 @@ export default function PRDetail() {
 
   useEffect(() => { load() }, [number])
 
+  useKeyboardShortcuts({ 'Escape': () => setView('prs') })
+
+  useEffect(() => {
+    if (pr) pushHistory({ type: 'pr', number: pr.number, title: pr.title })
+  }, [pr?.number])
+
   const handleMerge = async () => {
     if (!confirm(`Merge this PR via ${mergeMethod}?`)) return
     setMerging(true)
@@ -74,8 +86,9 @@ export default function PRDetail() {
     try {
       await mergePR(number, mergeMethod, mergeMsg || undefined)
       setMergeSuccess(true)
+      addToast(`PR #${number} успешно слит!`, 'success')
       await load()
-    } catch (e: any) { setError(e.message) }
+    } catch (e: any) { setError(e.message); addToast(e.message, 'error') }
     finally { setMerging(false) }
   }
 
@@ -117,6 +130,22 @@ export default function PRDetail() {
     finally { setSubmittingReview(false) }
   }
 
+  const loadDiff = async () => {
+    if (diff) { setShowDiff(v => !v); return }
+    setLoadingDiff(true)
+    try {
+      if (DEMO) {
+        await new Promise(r => setTimeout(r, 300))
+        setDiff(`diff --git a/src/index.ts b/src/index.ts\n--- a/src/index.ts\n+++ b/src/index.ts\n@@ -1,5 +1,8 @@\n-const x = 1\n+const x = 2\n+const y = 3\n console.log(x)`)
+      } else {
+        const d = await getPRDiff(number)
+        setDiff(d)
+      }
+      setShowDiff(true)
+    } catch (e: any) { addToast('Не удалось загрузить diff', 'error') }
+    finally { setLoadingDiff(false) }
+  }
+
   const saveEditPR = async () => {
     try {
       const updated = await updatePR(number, { title: editTitle, body: editBody })
@@ -137,9 +166,18 @@ export default function PRDetail() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto', gap: 0 }}>
       {/* Back */}
-      <button onClick={() => setView('prs')} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontFamily: 'var(--font-body)', fontSize: 13, cursor: 'pointer', marginBottom: 12, padding: 0, flexShrink: 0, textAlign: 'left' }}>
-        ← Back to pull requests
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexShrink: 0 }}>
+        <button onClick={() => setView('prs')} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontFamily: 'var(--font-body)', fontSize: 13, cursor: 'pointer', padding: 0 }}>
+          ← Назад к PR
+        </button>
+        <button
+          onClick={() => { navigator.clipboard.writeText(`https://github.com/${pr?.head?.label?.split(':')[0] ?? ''}/pull/${number}`); addToast('Ссылка на PR скопирована', 'success') }}
+          title="Скопировать ссылку на PR"
+          style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 5, padding: '3px 8px', cursor: 'pointer', color: 'var(--text-3)', fontFamily: 'var(--font-mono)', fontSize: 11, transition: 'all 0.1s' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-red)'; e.currentTarget.style.color = 'var(--text)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-3)' }}
+        >⎘ Копировать ссылку</button>
+      </div>
 
       {/* Header */}
       <div style={{ flexShrink: 0, marginBottom: 16 }}>
@@ -200,6 +238,9 @@ export default function PRDetail() {
           {!pr.merged && pr.state === 'open' && (
             <NeonButton size="sm" variant="ghost" onClick={() => setShowReview(!showReview)} icon="◈" tooltip="Одобрить, запросить изменения или оставить комментарий к PR">Review</NeonButton>
           )}
+          <NeonButton size="sm" variant="ghost" onClick={loadDiff} icon="⊟" tooltip="Просмотреть изменения кода (diff)">
+            {loadingDiff ? '...' : showDiff ? 'Скрыть Diff' : 'Diff'}
+          </NeonButton>
         </div>
       </div>
 
@@ -256,6 +297,26 @@ export default function PRDetail() {
             <NeonButton size="sm" variant="danger" onClick={() => handleReview('REQUEST_CHANGES')} disabled={submittingReview} icon="✗" tooltip="Запросить изменения перед слиянием PR">Request Changes</NeonButton>
             <NeonButton size="sm" variant="ghost" onClick={() => handleReview('COMMENT')} disabled={submittingReview} icon="💬" tooltip="Оставить комментарий без одобрения или блокировки">Comment</NeonButton>
           </div>
+        </motion.div>
+      )}
+
+      {/* Diff viewer */}
+      {showDiff && diff && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+          style={{ marginBottom: 16, flexShrink: 0, background: '#0a0a0f', border: '1px solid var(--border)', borderRadius: 8, overflow: 'auto', maxHeight: 400 }}>
+          <div style={{ padding: '8px 14px', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-head)', fontSize: 9, color: 'var(--text-3)', letterSpacing: '0.1em' }}>
+            DIFF — {pr.changed_files} файлов · <span style={{ color: 'var(--green)' }}>+{pr.additions}</span> · <span style={{ color: '#ff4455' }}>-{pr.deletions}</span>
+          </div>
+          <pre style={{ margin: 0, padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: 11, lineHeight: 1.6, overflowX: 'auto' }}>
+            {diff.split('\n').map((line, i) => {
+              let color = 'var(--text-3)'
+              if (line.startsWith('+') && !line.startsWith('+++')) color = '#00cc66'
+              else if (line.startsWith('-') && !line.startsWith('---')) color = '#ff4455'
+              else if (line.startsWith('@@')) color = 'var(--blue)'
+              else if (line.startsWith('diff') || line.startsWith('index') || line.startsWith('---') || line.startsWith('+++')) color = 'var(--text-2)'
+              return <span key={i} style={{ display: 'block', color }}>{line}</span>
+            })}
+          </pre>
         </motion.div>
       )}
 

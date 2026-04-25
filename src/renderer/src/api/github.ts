@@ -112,6 +112,19 @@ export const inviteCollaborator = (username: string, permission: 'pull' | 'triag
 export const cancelInvitation = (invitationId: number): Promise<null> =>
   gh(`/repos/${REPO}/invitations/${invitationId}`, { method: 'DELETE' })
 
+// ── PR Diff ───────────────────────────────────────────────────────────────
+export const getPRDiff = async (n: number): Promise<string> => {
+  const res = await fetch(`https://api.github.com/repos/${REPO}/pulls/${n}`, {
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      Accept: 'application/vnd.github.diff',
+      'X-GitHub-Api-Version': '2022-11-28',
+    }
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.text()
+}
+
 // ── Token validation ──────────────────────────────────────────────────────
 export const validateToken = (): Promise<{ login: string; name: string; avatar_url: string }> =>
   gh('/user')

@@ -85,4 +85,16 @@ export interface GitHubInvitation {
   inviter: GitHubUser
 }
 
-export type View = 'issues' | 'issue-detail' | 'prs' | 'pr-detail' | 'commits' | 'invites'
+export type View = 'dashboard' | 'issues' | 'issue-detail' | 'prs' | 'pr-detail' | 'commits' | 'invites'
+
+export interface Toast {
+  id: string
+  message: string
+  type: 'success' | 'error' | 'info'
+}
+
+export interface HistoryItem {
+  type: 'issue' | 'pr'
+  number: number
+  title: string
+}

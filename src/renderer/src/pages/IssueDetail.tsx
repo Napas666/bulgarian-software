@@ -9,6 +9,7 @@ import { useStore } from '../store/useStore'
 import type { GitHubIssue, GitHubComment, GitHubLabel } from '../types'
 import NeonButton from '../components/ui/NeonButton'
 import LabelBadge from '../components/ui/LabelBadge'
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 
 function timeAgo(iso: string) {
   const d = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
@@ -21,6 +22,8 @@ function timeAgo(iso: string) {
 export default function IssueDetail() {
   const number = useStore(s => s.selectedNumber)!
   const setView = useStore(s => s.setView)
+  const addToast = useStore(s => s.addToast)
+  const pushHistory = useStore(s => s.pushHistory)
 
   const [issue, setIssue] = useState<GitHubIssue | null>(null)
   const [comments, setComments] = useState<GitHubComment[]>([])
@@ -68,13 +71,20 @@ export default function IssueDetail() {
 
   useEffect(() => { load() }, [number])
 
+  useKeyboardShortcuts({ 'Escape': () => setView('issues') })
+
+  // Push to history when issue loads
+  useEffect(() => {
+    if (issue) pushHistory({ type: 'issue', number: issue.number, title: issue.title })
+  }, [issue?.number])
+
   const saveEdit = async () => {
     setSavingEdit(true)
     try {
       const updated = await updateIssue(number, { title: editTitle, body: editBody })
       setIssue(updated)
       setEditingBody(false)
-    } catch (e: any) { setError(e.message) }
+    } catch (e: any) { setError(e.message); addToast(e.message, 'error') }
     finally { setSavingEdit(false) }
   }
 
@@ -84,7 +94,8 @@ export default function IssueDetail() {
     try {
       const updated = await updateIssue(number, { state: issue.state === 'open' ? 'closed' : 'open' })
       setIssue(updated)
-    } catch (e: any) { setError(e.message) }
+      addToast(updated.state === 'closed' ? 'Задача закрыта' : 'Задача переоткрыта', 'success')
+    } catch (e: any) { setError(e.message); addToast(e.message, 'error') }
     finally { setTogglingState(false) }
   }
 
@@ -95,7 +106,8 @@ export default function IssueDetail() {
       const c = await addComment(number, newComment)
       setComments(prev => [...prev, c])
       setNewComment('')
-    } catch (e: any) { setError(e.message) }
+      addToast('Комментарий добавлен', 'success')
+    } catch (e: any) { setError(e.message); addToast(e.message, 'error') }
     finally { setSubmittingComment(false) }
   }
 
@@ -141,9 +153,18 @@ export default function IssueDetail() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 0, overflow: 'auto' }}>
       {/* Back + header */}
       <div style={{ flexShrink: 0, marginBottom: 16 }}>
-        <button onClick={() => setView('issues')} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontFamily: 'var(--font-body)', fontSize: 13, cursor: 'pointer', marginBottom: 12, padding: 0 }}>
-          ← Back to issues
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <button onClick={() => setView('issues')} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontFamily: 'var(--font-body)', fontSize: 13, cursor: 'pointer', padding: 0 }}>
+            ← Назад к задачам
+          </button>
+          <button
+            onClick={() => { navigator.clipboard.writeText(`https://github.com/${issue?.html_url ?? ''}`); addToast('Ссылка скопирована', 'success') }}
+            title="Скопировать ссылку на задачу"
+            style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 5, padding: '3px 8px', cursor: 'pointer', color: 'var(--text-3)', fontFamily: 'var(--font-mono)', fontSize: 11, transition: 'all 0.1s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-red)'; e.currentTarget.style.color = 'var(--text)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-3)' }}
+          >⎘ Копировать ссылку</button>
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 8 }}>
           {/* State badge */}
